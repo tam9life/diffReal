@@ -1,5 +1,5 @@
 import { FloatingPanel } from './floating-panel/FloatingPanel';
-import { detectImages, getImageDataUrl, scrollToImage, observeDOMChanges } from './image-detector';
+import { detectImages, getImageDataUrl, scrollToImage, observeDOMChanges, captureAllImages, clearCapturedImages } from './image-detector';
 import type { Message, Settings, ImageAnalysisItem, ModelStatus, AnalysisResult } from '../shared/types';
 import { DEFAULT_SETTINGS, ANALYSIS_BATCH_SIZE, ANALYSIS_DELAY_MS } from '../shared/constants';
 
@@ -75,7 +75,10 @@ function handleSettingsChange(newSettings: Partial<Settings>): void {
   }
 }
 
-function handleScanRequest(): void {
+async function handleScanRequest(): Promise<void> {
+  // 캐시 초기화
+  clearCapturedImages();
+
   const detected = detectImages(settings);
 
   images = detected.map(img => ({
@@ -86,6 +89,12 @@ function handleScanRequest(): void {
   panel?.setImages(images);
 
   if (images.length > 0) {
+    // 먼저 자동 스크롤하며 모든 이미지 캡처
+    panel?.setStatus('Capturing images...');
+    await captureAllImages(images);
+
+    // 캡처 완료 후 분석 시작
+    panel?.setStatus('Analyzing...');
     startAnalysis();
   }
 }

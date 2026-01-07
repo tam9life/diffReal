@@ -1,4 +1,4 @@
-import type { Message, Settings, ModelStatus, CaptureImagePayload, CaptureImageResult } from '../shared/types';
+import type { Message, Settings, ModelStatus, CropImagePayload, CaptureImageResult } from '../shared/types';
 import { DEFAULT_SETTINGS, STORAGE_KEYS } from '../shared/constants';
 import { ensureOffscreenDocument } from './offscreen-manager';
 
@@ -70,16 +70,69 @@ export async function handleMessage(
       }
       return;
 
-    case 'CAPTURE_IMAGE':
-      console.log('[DiffReal] Background: CAPTURE_IMAGE received');
-      if (!sender.tab?.id) {
-        return { dataUrl: null, error: 'No tab ID' };
-      }
-      return captureImageFromTab(sender.tab.id, message.payload as CaptureImagePayload);
+    case 'CAPTURE_SCREEN':
+      // 전체 화면 캡처 (crop 없이)
+      return captureScreen();
+
+    case 'CROP_IMAGE':
+      // 스크린샷에서 특정 영역 crop
+      return cropImage(message.payload as CropImagePayload);
 
     default:
       console.warn('[DiffReal] Unknown message type:', message.type);
       return;
+  }
+}
+
+async function captureScreen(): Promise<CaptureImageResult> {
+  try {
+    const dataUrl = await chrome.tabs.captureVisibleTab({ format: 'png' });
+    return { dataUrl };
+  } catch (error) {
+    console.error('[DiffReal] Failed to capture screen:', error);
+    return { dataUrl: null, error: (error as Error).message };
+  }
+}
+
+async function cropImage(payload: CropImagePayload): Promise<CaptureImageResult> {
+  try {
+    const { screenshot, rect, devicePixelRatio } = payload;
+
+    // Base64 data URL을 Blob으로 변환
+    const base64 = screenshot.split(',')[1];
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const blob = new Blob([bytes], { type: 'image/png' });
+
+    // ImageBitmap 생성
+    const img = await createImageBitmap(blob);
+
+    // 실제 픽셀 좌표 계산
+    const actualX = Math.round(rect.x * devicePixelRatio);
+    const actualY = Math.round(rect.y * devicePixelRatio);
+    const actualWidth = Math.round(rect.width * devicePixelRatio);
+    const actualHeight = Math.round(rect.height * devicePixelRatio);
+
+    // 캔버스에 crop
+    const canvas = new OffscreenCanvas(actualWidth, actualHeight);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Failed to get canvas context');
+    }
+
+    ctx.drawImage(img, actualX, actualY, actualWidth, actualHeight, 0, 0, actualWidth, actualHeight);
+
+    // Blob으로 변환 후 data URL 생성
+    const resultBlob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+    const dataUrl = await blobToDataUrl(resultBlob);
+
+    return { dataUrl };
+  } catch (error) {
+    console.error('[DiffReal] Failed to crop image:', error);
+    return { dataUrl: null, error: (error as Error).message };
   }
 }
 
@@ -90,48 +143,6 @@ function blobToDataUrl(blob: Blob): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
-}
-
-async function captureImageFromTab(tabId: number, payload: CaptureImagePayload): Promise<CaptureImageResult> {
-  try {
-    const { rect, devicePixelRatio } = payload;
-
-    // Capture the visible tab
-    const screenshotDataUrl = await chrome.tabs.captureVisibleTab({ format: 'png' });
-
-    // Create offscreen canvas to crop the image
-    const img = await loadImage(screenshotDataUrl);
-
-    // Calculate actual pixel coordinates (accounting for device pixel ratio)
-    const actualX = Math.round(rect.x * devicePixelRatio);
-    const actualY = Math.round(rect.y * devicePixelRatio);
-    const actualWidth = Math.round(rect.width * devicePixelRatio);
-    const actualHeight = Math.round(rect.height * devicePixelRatio);
-
-    // Create canvas and crop
-    const canvas = new OffscreenCanvas(actualWidth, actualHeight);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Failed to get canvas context');
-    }
-
-    ctx.drawImage(img, actualX, actualY, actualWidth, actualHeight, 0, 0, actualWidth, actualHeight);
-
-    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
-    const dataUrl = await blobToDataUrl(blob);
-
-    return { dataUrl };
-  } catch (error) {
-    console.error('[DiffReal] Failed to capture image:', error);
-    return { dataUrl: null, error: (error as Error).message };
-  }
-}
-
-async function loadImage(dataUrl: string): Promise<ImageBitmap> {
-  // data URL을 직접 blob으로 변환 (fetch 사용 안 함)
-  const response = await fetch(dataUrl);
-  const blob = await response.blob();
-  return createImageBitmap(blob);
 }
 
 async function broadcastToTabs(message: Message): Promise<void> {

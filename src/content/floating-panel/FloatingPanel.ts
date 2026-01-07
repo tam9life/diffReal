@@ -292,12 +292,13 @@ export class FloatingPanel {
     const realScoreClass = this.getScoreClass(img.analysis?.realScore, 'real');
     const nsfwScoreClass = this.getScoreClass(img.analysis?.nsfwScore, 'nsfw');
 
+    // 썸네일: 외부 URL 접근 없이 크기 정보만 표시
+    const thumbnailContent = `<div class="diffreal-thumbnail-placeholder">${img.width}×${img.height}</div>`;
+
     return `
       <tr class="diffreal-image-row ${isFiltered ? 'filtered' : ''}" data-image-id="${img.id}">
         <td>${index + 1}</td>
-        <td>
-          <img class="diffreal-thumbnail" src="${img.src}" alt="" loading="lazy">
-        </td>
+        <td>${thumbnailContent}</td>
         <td>
           ${img.analysis
             ? `<span class="diffreal-score ${realScoreClass}">${img.analysis.realScore.toFixed(2)}</span>`
@@ -400,6 +401,13 @@ export class FloatingPanel {
 
   public onImageSelect(callback: (imageId: string) => void): void {
     this.onImageClick = callback;
+  }
+
+  public setStatus(status: string): void {
+    const analyzedCount = this.panel.querySelector('#analyzedCount');
+    if (analyzedCount) {
+      analyzedCount.textContent = status;
+    }
   }
 
   public destroy(): void {

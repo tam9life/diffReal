@@ -57,7 +57,8 @@ export type MessageType =
   | 'TOGGLE_PANEL'
   | 'UPDATE_SETTINGS'
   | 'GET_SETTINGS'
-  | 'CAPTURE_IMAGE';
+  | 'CAPTURE_SCREEN'
+  | 'CROP_IMAGE';
 
 export interface Message<T = unknown> {
   type: MessageType;
@@ -82,7 +83,8 @@ export interface ModelProgressPayload {
   status: string;
 }
 
-export interface CaptureImagePayload {
+export interface CropImagePayload {
+  screenshot: string;
   rect: {
     x: number;
     y: number;
