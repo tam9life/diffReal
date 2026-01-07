@@ -1,0 +1,252 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  background: #1a1a1f;
+  color: #e0e0e0;
+  width: 320px;
+}
+
+.popup-container {
+  padding: 0;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.popup-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.popup-icon {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+}
+
+.popup-version {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.popup-section {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.popup-section:last-of-type {
+  border-bottom: none;
+}
+
+.popup-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #808080;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.popup-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popup-btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.popup-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.popup-btn.primary:active {
+  transform: translateY(0);
+}
+
+.popup-row {
+  margin-bottom: 14px;
+}
+
+.popup-row:last-child {
+  margin-bottom: 0;
+}
+
+.popup-label {
+  display: block;
+  font-size: 12px;
+  color: #a0a0a0;
+  margin-bottom: 6px;
+}
+
+.popup-size-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.popup-size-inputs input {
+  width: 60px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  text-align: center;
+}
+
+.popup-size-inputs input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.popup-size-inputs span {
+  color: #808080;
+  font-size: 12px;
+}
+
+.popup-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.popup-slider-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  outline: none;
+}
+
+.popup-slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.popup-slider-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #667eea;
+  min-width: 32px;
+  text-align: right;
+}
+
+.popup-row.checkbox {
+  margin-bottom: 10px;
+}
+
+.popup-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.popup-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
+.popup-checkbox span {
+  font-size: 12px;
+  color: #e0e0e0;
+}
+
+.popup-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.popup-status-row:last-child {
+  margin-bottom: 0;
+}
+
+.popup-status-label {
+  font-size: 12px;
+  color: #a0a0a0;
+}
+
+.popup-status-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.popup-status-badge.ready {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+}
+
+.popup-status-badge.loading {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  animation: pulse 1.5s infinite;
+}
+
+.popup-status-badge.error {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.popup-footer {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  text-align: center;
+  font-size: 11px;
+}
+
+.popup-footer a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.popup-footer a:hover {
+  text-decoration: underline;
+}
+
+.popup-footer-separator {
+  margin: 0 8px;
+  color: #808080;
+}

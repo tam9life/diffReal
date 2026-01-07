@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <div class="popup-title">
+        <div class="popup-icon"></div>
+        <span>DiffReal</span>
+      </div>
+      <span class="popup-version">v1.0.0</span>
+    </div>
+
+    <div class="popup-section">
+      <button class="popup-btn primary" id="togglePanel">
+        Open Panel
+      </button>
+    </div>
+
+    <div class="popup-section">
+      <div class="popup-section-title">Settings</div>
+
+      <div class="popup-row">
+        <label class="popup-label">Minimum Image Size</label>
+        <div class="popup-size-inputs">
+          <input type="number" id="minWidth" value="512" min="1">
+          <span>×</span>
+          <input type="number" id="minHeight" value="512" min="1">
+          <span>px</span>
+        </div>
+      </div>
+
+      <div class="popup-row">
+        <label class="popup-label">Real Score Threshold</label>
+        <div class="popup-slider-row">
+          <input type="range" id="realThreshold" min="0" max="1" step="0.05" value="0.5">
+          <span class="popup-slider-value" id="realThresholdValue">0.50</span>
+        </div>
+      </div>
+
+      <div class="popup-row">
+        <label class="popup-label">NSFW Score Threshold</label>
+        <div class="popup-slider-row">
+          <input type="range" id="nsfwThreshold" min="0" max="1" step="0.05" value="0.5">
+          <span class="popup-slider-value" id="nsfwThresholdValue">0.50</span>
+        </div>
+      </div>
+
+      <div class="popup-row checkbox">
+        <label class="popup-checkbox">
+          <input type="checkbox" id="autoAnalyze" checked>
+          <span>Auto-analyze new images</span>
+        </label>
+      </div>
+
+      <div class="popup-row checkbox">
+        <label class="popup-checkbox">
+          <input type="checkbox" id="showOverlay" checked>
+          <span>Show overlay on images</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="popup-section">
+      <div class="popup-section-title">Model Status</div>
+      <div class="popup-status-row">
+        <span class="popup-status-label">CLIP (Real/Illustration)</span>
+        <span class="popup-status-badge loading" id="clipStatus">Loading</span>
+      </div>
+      <div class="popup-status-row">
+        <span class="popup-status-label">NSFWJS</span>
+        <span class="popup-status-badge loading" id="nsfwStatus">Loading</span>
+      </div>
+      <div class="popup-status-row">
+        <span class="popup-status-label">GPU Backend</span>
+        <span class="popup-status-badge" id="gpuStatus">CPU</span>
+      </div>
+    </div>
+
+    <div class="popup-footer">
+      <a href="https://github.com/anthropics/diffreal" target="_blank">GitHub</a>
+      <span class="popup-footer-separator">•</span>
+      <a href="#" id="resetSettings">Reset Settings</a>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

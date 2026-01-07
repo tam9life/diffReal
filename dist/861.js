@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdiffreal=self.webpackChunkdiffreal||[]).push([[861],{861(e,n,r){r.r(n),r.d(n,{modelJson:()=>t,weightBundles:()=>u});var t=function(){return r.e(601).then(r.bind(r,601))},u=[function(){return r.e(436).then(r.bind(r,436))}]}}]);

@@ -1,0 +1,25 @@
+{
+  "name": "diffreal",
+  "version": "1.0.0",
+  "description": "Chrome Extension for analyzing real vs illustration images and NSFW content",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.0.0",
+    "@tensorflow/tfjs": "^4.21.0",
+    "nsfwjs": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "copy-webpack-plugin": "^12.0.2",
+    "css-loader": "^7.1.2",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.4",
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
