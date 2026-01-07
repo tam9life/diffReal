@@ -557,3 +557,24 @@ DOM에서 이미지 위치/크기만 수집 (URL 접근 없음)
 - CAPTURE_IMAGE → 제거
 - CAPTURE_SCREEN → 전체 화면 캡처
 - CROP_IMAGE → 스크린샷에서 특정 영역 잘라내기
+
+## Q
+왜 여전히 cors 에러가 나오죠. 색출해내세요
+
+## A
+CORS 원인 및 수정
+
+원인: img.src 접근 자체가 브라우저에서 이미지 로드를 트리거함
+// 이전 코드 - CORS 트리거
+const src = img.src || img.currentSrc || '';  // ← 이 줄이 문제!
+
+수정 내용:
+| 파일              | 변경                                 |
+|-------------------|--------------------------------------|
+| image-detector.ts | img.src 접근 완전 제거, '[img]' 저장 |
+| nsfw-analyzer.ts  | crossOrigin = 'anonymous' 제거       |
+
+현재 동작:
+- detectImages(): naturalWidth/Height만 확인 (이미 로드된 이미지 판별)
+- URL 접근 없음 → CORS 에러 없음
+- 스크린 캡처로만 이미지 데이터 획득
