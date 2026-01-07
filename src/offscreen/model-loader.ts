@@ -108,8 +108,14 @@ export async function initModels(): Promise<ModelStatus> {
   updateStatus({ gpuBackend: backend });
 
   await Promise.all([
-    loadClipModel().catch(() => null),
-    loadNsfwModel().catch(() => null),
+    loadClipModel().catch((e) => {
+      console.error('[DiffReal] CLIP model load failed:', e);
+      return null;
+    }),
+    loadNsfwModel().catch((e) => {
+      console.error('[DiffReal] NSFW model load failed:', e);
+      return null;
+    }),
   ]);
 
   return modelStatus;

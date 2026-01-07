@@ -1,5 +1,6 @@
 import { getClipPipeline } from './model-loader';
 import { REALISM_LABELS } from '../shared/constants';
+import { loadImageFromDataUrl } from './nsfw-analyzer';
 
 export interface ClipResult {
   realScore: number;
@@ -22,7 +23,9 @@ export async function analyzeRealism(imageData: string): Promise<ClipResult> {
 
   const allLabels = [...REALISM_LABELS.real, ...REALISM_LABELS.illustration];
 
-  const rawResults = await pipeline(imageData, allLabels);
+  // Convert base64 to HTMLImageElement for transformers.js
+  const img = await loadImageFromDataUrl(imageData);
+  const rawResults = await pipeline(img, allLabels);
 
   // Handle both single result and array of results
   const results: ClassificationResult[] = Array.isArray(rawResults)

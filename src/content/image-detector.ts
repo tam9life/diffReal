@@ -28,35 +28,6 @@ export function detectImages(settings: Settings): ImageInfo[] {
     }
   }
 
-  // Detect background images
-  const allElements = document.querySelectorAll('*');
-  for (const el of allElements) {
-    const style = window.getComputedStyle(el);
-    const bgImage = style.backgroundImage;
-
-    if (bgImage && bgImage !== 'none' && bgImage.startsWith('url(')) {
-      const urlMatch = bgImage.match(/url\(["']?(.+?)["']?\)/);
-      if (urlMatch && urlMatch[1]) {
-        const src = urlMatch[1];
-        if (!src.startsWith('data:image/svg')) {
-          // Create a temporary image to get dimensions
-          const tempImg = new Image();
-          tempImg.src = src;
-
-          // We'll check dimensions when loaded
-          images.push({
-            id: generateImageId(),
-            src,
-            width: 0, // Will be updated
-            height: 0,
-            element: el as HTMLElement,
-            type: 'background',
-          });
-        }
-      }
-    }
-  }
-
   // Detect canvas elements
   const canvasElements = document.querySelectorAll('canvas');
   for (const canvas of canvasElements) {
