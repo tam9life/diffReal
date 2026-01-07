@@ -52,49 +52,23 @@ export function detectImages(settings: Settings): ImageInfo[] {
 }
 
 export async function getImageDataUrl(imageInfo: ImageInfo): Promise<string> {
-  // 1. Data URL은 그대로 반환
+  // Canvas 요소는 이미 data URL로 저장됨
   if (imageInfo.src.startsWith('data:')) {
     return imageInfo.src;
   }
 
-  // 2. Same-origin 이미지는 canvas로 변환 시도
-  if (imageInfo.element && imageInfo.element instanceof HTMLImageElement) {
-    try {
-      const dataUrl = await convertImageToDataUrl(imageInfo.element);
-      if (dataUrl) {
-        console.log('[DiffReal] Converted image via canvas');
-        return dataUrl;
-      }
-    } catch (e) {
-      console.log('[DiffReal] Canvas conversion failed (likely CORS), trying screen capture');
-    }
+  // 모든 이미지는 스크린 캡처로만 처리 (CORS 완전 우회)
+  if (!imageInfo.element) {
+    throw new Error('No element to capture');
   }
 
-  // 3. Cross-origin 이미지는 스크린 캡처 사용
-  if (imageInfo.element) {
-    const dataUrl = await captureImageFromScreen(imageInfo.element);
-    if (dataUrl) {
-      console.log('[DiffReal] Captured image from screen');
-      return dataUrl;
-    }
+  const dataUrl = await captureImageFromScreen(imageInfo.element);
+  if (dataUrl) {
+    console.log('[DiffReal] Captured image from screen');
+    return dataUrl;
   }
 
-  throw new Error('Failed to get image data');
-}
-
-async function convertImageToDataUrl(img: HTMLImageElement): Promise<string | null> {
-  const canvas = document.createElement('canvas');
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-
-  // 이 줄에서 CORS 이미지면 에러 발생 (의도적)
-  ctx.drawImage(img, 0, 0);
-
-  // toDataURL이 성공하면 same-origin 이미지
-  return canvas.toDataURL('image/jpeg', 0.9);
+  throw new Error('Failed to capture image');
 }
 
 async function captureImageFromScreen(element: HTMLElement): Promise<string | null> {

@@ -127,14 +127,11 @@ async function captureImageFromTab(tabId: number, payload: CaptureImagePayload):
   }
 }
 
-function loadImage(src: string): Promise<ImageBitmap> {
-  return new Promise((resolve, reject) => {
-    fetch(src)
-      .then(res => res.blob())
-      .then(blob => createImageBitmap(blob))
-      .then(resolve)
-      .catch(reject);
-  });
+async function loadImage(dataUrl: string): Promise<ImageBitmap> {
+  // data URL을 직접 blob으로 변환 (fetch 사용 안 함)
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  return createImageBitmap(blob);
 }
 
 async function broadcastToTabs(message: Message): Promise<void> {
