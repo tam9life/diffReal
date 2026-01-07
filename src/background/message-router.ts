@@ -1,4 +1,4 @@
-import type { Message, Settings, ModelStatus, FetchImagePayload, FetchImageResult, CaptureImagePayload, CaptureImageResult } from '../shared/types';
+import type { Message, Settings, ModelStatus, CaptureImagePayload, CaptureImageResult } from '../shared/types';
 import { DEFAULT_SETTINGS, STORAGE_KEYS } from '../shared/constants';
 import { ensureOffscreenDocument } from './offscreen-manager';
 
@@ -70,10 +70,6 @@ export async function handleMessage(
       }
       return;
 
-    case 'FETCH_IMAGE':
-      console.log('[DiffReal] Background: FETCH_IMAGE received');
-      return fetchImageAsDataUrl((message.payload as FetchImagePayload).url);
-
     case 'CAPTURE_IMAGE':
       console.log('[DiffReal] Background: CAPTURE_IMAGE received');
       if (!sender.tab?.id) {
@@ -84,21 +80,6 @@ export async function handleMessage(
     default:
       console.warn('[DiffReal] Unknown message type:', message.type);
       return;
-  }
-}
-
-async function fetchImageAsDataUrl(url: string): Promise<FetchImageResult> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    const blob = await response.blob();
-    const dataUrl = await blobToDataUrl(blob);
-    return { dataUrl };
-  } catch (error) {
-    console.error('[DiffReal] Failed to fetch image:', url, error);
-    return { dataUrl: null, error: (error as Error).message };
   }
 }
 

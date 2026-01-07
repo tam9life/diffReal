@@ -455,3 +455,25 @@ Failed to load resource: net::ERR_FAILEDUnderstand this error
 
 ## Q
 thumb img 를 다른 저장소에서 가져와서 생기는 CORS 문제를 직접 해결하기 어렵다면 웹브라우저 상에서 스크린샷을 통해 분석해도 좋습니다.
+
+## A
+커밋 및 푸시 완료했습니다.
+
+완료된 작업 요약
+
+CORS 문제 해결을 위한 스크린 캡처 기능 추가:
+
+1. manifest.json - tabs 권한 추가
+2. src/shared/types.ts - CAPTURE_IMAGE 메시지 타입 및 페이로드 추가
+3. src/background/message-router.ts - captureVisibleTab API로 탭 스크린샷 캡처 후 이미지 영역 크롭
+4. src/content/image-detector.ts - 이미지 분석 시 스크린 캡처를 우선 시도, 실패 시 background fetch로 폴백
+
+작동 방식:
+1. 이미지 요소를 뷰포트 중앙으로 스크롤
+2. captureVisibleTab으로 전체 탭 스크린샷
+3. 이미지 영역(rect)만 크롭하여 data URL 반환
+4. CORS 이미지도 분석 가능
+
+## Q
+더 근본적으로 이미지 분석을 못 하는 이유 찾기. CORS 유발 코드 제거
+뷰 검사 서비스 워커(비활성) 언급

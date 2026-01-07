@@ -69,7 +69,11 @@ function updateModelStatus(status: ModelStatus): void {
 function setupEventListeners(): void {
   const togglePanelBtn = document.getElementById('togglePanel');
   togglePanelBtn?.addEventListener('click', async () => {
-    await chrome.runtime.sendMessage({ type: 'TOGGLE_PANEL' });
+    // 서비스 워커 우회: 직접 content script에 메시지 전송
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_PANEL' });
+    }
     window.close();
   });
 

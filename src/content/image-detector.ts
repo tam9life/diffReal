@@ -1,4 +1,4 @@
-import type { ImageInfo, Settings, FetchImageResult, CaptureImageResult } from '../shared/types';
+import type { ImageInfo, Settings, CaptureImageResult } from '../shared/types';
 
 let imageIdCounter = 0;
 
@@ -52,38 +52,49 @@ export function detectImages(settings: Settings): ImageInfo[] {
 }
 
 export async function getImageDataUrl(imageInfo: ImageInfo): Promise<string> {
+  // 1. Data URL은 그대로 반환
   if (imageInfo.src.startsWith('data:')) {
     return imageInfo.src;
   }
 
-  // Method 1: Try to capture from screen (most reliable for CORS images)
-  if (imageInfo.element) {
+  // 2. Same-origin 이미지는 canvas로 변환 시도
+  if (imageInfo.element && imageInfo.element instanceof HTMLImageElement) {
     try {
-      const dataUrl = await captureImageFromScreen(imageInfo.element);
+      const dataUrl = await convertImageToDataUrl(imageInfo.element);
       if (dataUrl) {
-        console.log('[DiffReal] Captured image from screen');
+        console.log('[DiffReal] Converted image via canvas');
         return dataUrl;
       }
     } catch (e) {
-      console.log('[DiffReal] Screen capture failed, trying fetch:', e);
+      console.log('[DiffReal] Canvas conversion failed (likely CORS), trying screen capture');
     }
   }
 
-  // Method 2: Fallback to background fetch
-  console.log('[DiffReal] Fetching image via background:', imageInfo.src.substring(0, 100));
-
-  const result = await chrome.runtime.sendMessage({
-    type: 'FETCH_IMAGE',
-    payload: { url: imageInfo.src },
-  }) as FetchImageResult;
-
-  console.log('[DiffReal] Fetch result:', result?.dataUrl ? 'success' : result?.error);
-
-  if (result?.dataUrl) {
-    return result.dataUrl;
+  // 3. Cross-origin 이미지는 스크린 캡처 사용
+  if (imageInfo.element) {
+    const dataUrl = await captureImageFromScreen(imageInfo.element);
+    if (dataUrl) {
+      console.log('[DiffReal] Captured image from screen');
+      return dataUrl;
+    }
   }
 
-  throw new Error(result?.error || 'Failed to fetch image');
+  throw new Error('Failed to get image data');
+}
+
+async function convertImageToDataUrl(img: HTMLImageElement): Promise<string | null> {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  // 이 줄에서 CORS 이미지면 에러 발생 (의도적)
+  ctx.drawImage(img, 0, 0);
+
+  // toDataURL이 성공하면 same-origin 이미지
+  return canvas.toDataURL('image/jpeg', 0.9);
 }
 
 async function captureImageFromScreen(element: HTMLElement): Promise<string | null> {

@@ -57,7 +57,6 @@ export type MessageType =
   | 'TOGGLE_PANEL'
   | 'UPDATE_SETTINGS'
   | 'GET_SETTINGS'
-  | 'FETCH_IMAGE'
   | 'CAPTURE_IMAGE';
 
 export interface Message<T = unknown> {
@@ -81,15 +80,6 @@ export interface ModelProgressPayload {
   model: 'clip' | 'nsfw';
   progress: number;
   status: string;
-}
-
-export interface FetchImagePayload {
-  url: string;
-}
-
-export interface FetchImageResult {
-  dataUrl: string | null;
-  error?: string;
 }
 
 export interface CaptureImagePayload {
