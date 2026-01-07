@@ -40,7 +40,7 @@ export async function analyzeNsfw(imageElement: HTMLImageElement): Promise<NsfwR
 export async function loadImageFromDataUrl(dataUrl: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    // crossOrigin 설정 안 함 - data URL만 사용하므로 필요 없음
     img.onload = () => resolve(img);
     img.onerror = (e) => reject(new Error(`Failed to load image: ${e}`));
     img.src = dataUrl;

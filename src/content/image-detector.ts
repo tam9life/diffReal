@@ -10,22 +10,20 @@ export function detectImages(settings: Settings): ImageInfo[] {
   const images: ImageInfo[] = [];
   const { minWidth, minHeight } = settings;
 
-  // Detect <img> elements (위치 정보만 수집, 이미지 데이터 접근 안 함)
+  // Detect <img> elements (위치 정보만 수집, src 접근 완전 금지)
   const imgElements = document.querySelectorAll('img');
   for (const img of imgElements) {
+    // naturalWidth/Height가 있으면 이미 로드된 이미지
     if (img.naturalWidth >= minWidth && img.naturalHeight >= minHeight) {
-      // src는 표시용으로만 사용 (접근하지 않음)
-      const src = img.src || img.currentSrc || '';
-      if (!src.startsWith('data:image/svg')) {
-        images.push({
-          id: generateImageId(),
-          src: src.substring(0, 100), // 표시용 짧은 URL만 저장
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-          element: img,
-          type: 'img',
-        });
-      }
+      // src 접근 안 함 - CORS 트리거 방지
+      images.push({
+        id: generateImageId(),
+        src: '[img]', // URL 접근 안 함
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        element: img,
+        type: 'img',
+      });
     }
   }
 
