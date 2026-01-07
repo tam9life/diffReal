@@ -476,4 +476,25 @@ CORS 문제 해결을 위한 스크린 캡처 기능 추가:
 
 ## Q
 더 근본적으로 이미지 분석을 못 하는 이유 찾기. CORS 유발 코드 제거
-뷰 검사 서비스 워커(비활성) 언급
+뷰 검사 서비스 워커(비활성) 하니 작동 안 하던 open panel이 작동함
+
+## A
+1. 서비스 워커 비활성화 문제 해결
+
+- 변경: popup.ts에서 chrome.tabs.sendMessage로 직접 content script에 메시지 전송
+- 이유: background 서비스 워커 우회 → 비활성 시에도 패널 열림
+
+2. CORS 유발 코드 제거
+
+- 삭제: FETCH_IMAGE 메시지 핸들러 및 fetchImageAsDataUrl 함수
+- 삭제: FetchImagePayload, FetchImageResult 타입
+
+3. 이미지 캡처 로직 단순화
+
+1. Data URL → 그대로 반환
+2. Same-origin 이미지 → Canvas로 변환 시도
+3. Cross-origin 이미지 → 스크린 캡처 사용 (CORS 우회)
+
+이제 Chrome에서 확장 프로그램을 리로드하고 테스트해보세요:
+1. 팝업에서 "Open Panel" 클릭 → 서비스 워커 비활성화 상태에서도 작동해야 함
+2. Scan Page → 콘솔에 CORS 에러 없이 이미지 분석 시도해야 함
