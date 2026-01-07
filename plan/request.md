@@ -413,3 +413,45 @@ resource.Understand this error
 2. 외부 이미지가 있는 사이트 방문
 3. Panel 열고 "Scan Page" 클릭
 4. 이미지 분석이 진행되는지 확인
+
+## Q
+1. 이미지가 4개만 인식 되는 문제
+2. 이미지 분석이 안 되는 문제. plugin에 node_modules이 .gitignore로 제외되어도
+ 작동하는지 확인
+3. scan page 버튼이 없음
+
+## A
+| 파일                                        | 변경                                                |
+|---------------------------------------------|-----------------------------------------------------|
+| src/content/floating-panel/FloatingPanel.ts | "Scan Page" 버튼을 controls 영역에 추가 (항상 표시) |
+| src/shared/constants.ts                     | 기본 최소 크기 512→200 변경                         |
+
+node_modules와 .gitignore 관련:
+- .gitignore에 node_modules/가 있어도 문제 없음
+- dist/ 폴더에 번들된 코드가 있으므로 확장은 정상 작동
+- Chrome은 dist/ 폴더만 로드함
+
+테스트 방법:
+1. Chrome에서 확장 리로드
+2. 패널 열기 → 상단에 "Scan Page" 버튼 확인
+3. 버튼 클릭 → 더 많은 이미지 감지 (200x200 이상)
+
+분석이 안 되는 문제:
+- Console에서 에러 확인 필요
+- CLIP/NSFW 모델 상태가 "Ready"인지 확인
+- 첫 실행 시 모델 다운로드에 시간 소요 (~350MB) 
+
+## Q
+여전히 CORS
+from origin 'https://...' has been blocked by CORS policy: No 
+'Access-Control-Allow-Origin' header is present on the requested 
+resource.Understand this error
+
+Access to image at 'https://....png?expires=...&key=...' from origin 'https://...' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+Failed to load resource: net::ERR_FAILEDUnderstand this error
+... Access to image at '...' from origin 'https://...' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+...  Failed to load resource: net::ERR_FAILEDUnderstand this error
+
+
+## Q
+thumb img 를 다른 저장소에서 가져와서 생기는 CORS 문제를 직접 해결하기 어렵다면 웹브라우저 상에서 스크린샷을 통해 분석해도 좋습니다.

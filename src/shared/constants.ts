@@ -1,6 +1,6 @@
 export const DEFAULT_SETTINGS = {
-  minWidth: 512,
-  minHeight: 512,
+  minWidth: 200,
+  minHeight: 200,
   realThreshold: 0.5,
   nsfwThreshold: 0.5,
   autoAnalyze: true,

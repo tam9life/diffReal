@@ -1,4 +1,4 @@
-import type { ImageInfo, Settings, FetchImageResult } from '../shared/types';
+import type { ImageInfo, Settings, FetchImageResult, CaptureImageResult } from '../shared/types';
 
 let imageIdCounter = 0;
 
@@ -56,17 +56,74 @@ export async function getImageDataUrl(imageInfo: ImageInfo): Promise<string> {
     return imageInfo.src;
   }
 
-  // Use background script to fetch image (bypasses CORS)
+  // Method 1: Try to capture from screen (most reliable for CORS images)
+  if (imageInfo.element) {
+    try {
+      const dataUrl = await captureImageFromScreen(imageInfo.element);
+      if (dataUrl) {
+        console.log('[DiffReal] Captured image from screen');
+        return dataUrl;
+      }
+    } catch (e) {
+      console.log('[DiffReal] Screen capture failed, trying fetch:', e);
+    }
+  }
+
+  // Method 2: Fallback to background fetch
+  console.log('[DiffReal] Fetching image via background:', imageInfo.src.substring(0, 100));
+
   const result = await chrome.runtime.sendMessage({
     type: 'FETCH_IMAGE',
     payload: { url: imageInfo.src },
   }) as FetchImageResult;
 
-  if (result.dataUrl) {
+  console.log('[DiffReal] Fetch result:', result?.dataUrl ? 'success' : result?.error);
+
+  if (result?.dataUrl) {
     return result.dataUrl;
   }
 
-  throw new Error(result.error || 'Failed to fetch image');
+  throw new Error(result?.error || 'Failed to fetch image');
+}
+
+async function captureImageFromScreen(element: HTMLElement): Promise<string | null> {
+  // Scroll element into view first
+  element.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'center' });
+
+  // Wait for scroll to complete
+  await new Promise(resolve => setTimeout(resolve, 100));
+
+  const rect = element.getBoundingClientRect();
+
+  // Check if element is visible in viewport
+  if (rect.width <= 0 || rect.height <= 0) {
+    return null;
+  }
+
+  // Ensure element is within viewport
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  const visibleRect = {
+    x: Math.max(0, rect.x),
+    y: Math.max(0, rect.y),
+    width: Math.min(rect.width, viewportWidth - Math.max(0, rect.x)),
+    height: Math.min(rect.height, viewportHeight - Math.max(0, rect.y)),
+  };
+
+  if (visibleRect.width <= 0 || visibleRect.height <= 0) {
+    return null;
+  }
+
+  const result = await chrome.runtime.sendMessage({
+    type: 'CAPTURE_IMAGE',
+    payload: {
+      rect: visibleRect,
+      devicePixelRatio: window.devicePixelRatio || 1,
+    },
+  }) as CaptureImageResult;
+
+  return result?.dataUrl || null;
 }
 
 export function observeDOMChanges(

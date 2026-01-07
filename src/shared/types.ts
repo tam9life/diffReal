@@ -57,7 +57,8 @@ export type MessageType =
   | 'TOGGLE_PANEL'
   | 'UPDATE_SETTINGS'
   | 'GET_SETTINGS'
-  | 'FETCH_IMAGE';
+  | 'FETCH_IMAGE'
+  | 'CAPTURE_IMAGE';
 
 export interface Message<T = unknown> {
   type: MessageType;
@@ -87,6 +88,21 @@ export interface FetchImagePayload {
 }
 
 export interface FetchImageResult {
+  dataUrl: string | null;
+  error?: string;
+}
+
+export interface CaptureImagePayload {
+  rect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  devicePixelRatio: number;
+}
+
+export interface CaptureImageResult {
   dataUrl: string | null;
   error?: string;
 }

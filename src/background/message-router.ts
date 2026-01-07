@@ -1,4 +1,4 @@
-import type { Message, Settings, ModelStatus, FetchImagePayload, FetchImageResult } from '../shared/types';
+import type { Message, Settings, ModelStatus, FetchImagePayload, FetchImageResult, CaptureImagePayload, CaptureImageResult } from '../shared/types';
 import { DEFAULT_SETTINGS, STORAGE_KEYS } from '../shared/constants';
 import { ensureOffscreenDocument } from './offscreen-manager';
 
@@ -71,7 +71,15 @@ export async function handleMessage(
       return;
 
     case 'FETCH_IMAGE':
+      console.log('[DiffReal] Background: FETCH_IMAGE received');
       return fetchImageAsDataUrl((message.payload as FetchImagePayload).url);
+
+    case 'CAPTURE_IMAGE':
+      console.log('[DiffReal] Background: CAPTURE_IMAGE received');
+      if (!sender.tab?.id) {
+        return { dataUrl: null, error: 'No tab ID' };
+      }
+      return captureImageFromTab(sender.tab.id, message.payload as CaptureImagePayload);
 
     default:
       console.warn('[DiffReal] Unknown message type:', message.type);
@@ -100,6 +108,51 @@ function blobToDataUrl(blob: Blob): Promise<string> {
     reader.onloadend = () => resolve(reader.result as string);
     reader.onerror = reject;
     reader.readAsDataURL(blob);
+  });
+}
+
+async function captureImageFromTab(tabId: number, payload: CaptureImagePayload): Promise<CaptureImageResult> {
+  try {
+    const { rect, devicePixelRatio } = payload;
+
+    // Capture the visible tab
+    const screenshotDataUrl = await chrome.tabs.captureVisibleTab({ format: 'png' });
+
+    // Create offscreen canvas to crop the image
+    const img = await loadImage(screenshotDataUrl);
+
+    // Calculate actual pixel coordinates (accounting for device pixel ratio)
+    const actualX = Math.round(rect.x * devicePixelRatio);
+    const actualY = Math.round(rect.y * devicePixelRatio);
+    const actualWidth = Math.round(rect.width * devicePixelRatio);
+    const actualHeight = Math.round(rect.height * devicePixelRatio);
+
+    // Create canvas and crop
+    const canvas = new OffscreenCanvas(actualWidth, actualHeight);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Failed to get canvas context');
+    }
+
+    ctx.drawImage(img, actualX, actualY, actualWidth, actualHeight, 0, 0, actualWidth, actualHeight);
+
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+    const dataUrl = await blobToDataUrl(blob);
+
+    return { dataUrl };
+  } catch (error) {
+    console.error('[DiffReal] Failed to capture image:', error);
+    return { dataUrl: null, error: (error as Error).message };
+  }
+}
+
+function loadImage(src: string): Promise<ImageBitmap> {
+  return new Promise((resolve, reject) => {
+    fetch(src)
+      .then(res => res.blob())
+      .then(blob => createImageBitmap(blob))
+      .then(resolve)
+      .catch(reject);
   });
 }
 

@@ -57,6 +57,9 @@ export class FloatingPanel {
 
       <div class="diffreal-controls">
         <div class="diffreal-control-row">
+          <button class="diffreal-scan-btn" id="scanBtnMain">Scan Page</button>
+        </div>
+        <div class="diffreal-control-row">
           <span class="diffreal-control-label">Min Size:</span>
           <div class="diffreal-size-inputs">
             <input type="number" class="diffreal-size-input" id="minWidth" value="${this.settings.minWidth}" min="1">
@@ -125,6 +128,9 @@ export class FloatingPanel {
 
     const scanBtn = this.panel.querySelector('#scanBtn');
     scanBtn?.addEventListener('click', () => this.onScanRequest?.());
+
+    const scanBtnMain = this.panel.querySelector('#scanBtnMain');
+    scanBtnMain?.addEventListener('click', () => this.onScanRequest?.());
 
     const minWidthInput = this.panel.querySelector('#minWidth') as HTMLInputElement;
     const minHeightInput = this.panel.querySelector('#minHeight') as HTMLInputElement;
