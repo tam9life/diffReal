@@ -1,4 +1,4 @@
-import type { Message, Settings, ModelStatus } from '../shared/types';
+import type { Message, Settings, ModelStatus, FetchImagePayload, FetchImageResult } from '../shared/types';
 import { DEFAULT_SETTINGS, STORAGE_KEYS } from '../shared/constants';
 import { ensureOffscreenDocument } from './offscreen-manager';
 
@@ -70,10 +70,37 @@ export async function handleMessage(
       }
       return;
 
+    case 'FETCH_IMAGE':
+      return fetchImageAsDataUrl((message.payload as FetchImagePayload).url);
+
     default:
       console.warn('[DiffReal] Unknown message type:', message.type);
       return;
   }
+}
+
+async function fetchImageAsDataUrl(url: string): Promise<FetchImageResult> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const blob = await response.blob();
+    const dataUrl = await blobToDataUrl(blob);
+    return { dataUrl };
+  } catch (error) {
+    console.error('[DiffReal] Failed to fetch image:', url, error);
+    return { dataUrl: null, error: (error as Error).message };
+  }
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 async function broadcastToTabs(message: Message): Promise<void> {

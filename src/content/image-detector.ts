@@ -1,4 +1,4 @@
-import type { ImageInfo, Settings } from '../shared/types';
+import type { ImageInfo, Settings, FetchImageResult } from '../shared/types';
 
 let imageIdCounter = 0;
 
@@ -56,30 +56,17 @@ export async function getImageDataUrl(imageInfo: ImageInfo): Promise<string> {
     return imageInfo.src;
   }
 
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
+  // Use background script to fetch image (bypasses CORS)
+  const result = await chrome.runtime.sendMessage({
+    type: 'FETCH_IMAGE',
+    payload: { url: imageInfo.src },
+  }) as FetchImageResult;
 
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Failed to get canvas context'));
-          return;
-        }
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg', 0.9));
-      } catch (error) {
-        reject(error);
-      }
-    };
+  if (result.dataUrl) {
+    return result.dataUrl;
+  }
 
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = imageInfo.src;
-  });
+  throw new Error(result.error || 'Failed to fetch image');
 }
 
 export function observeDOMChanges(

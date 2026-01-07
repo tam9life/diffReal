@@ -265,3 +265,151 @@ Real/Illustration 분류
 - 이미지 유사도 검색
 - 배치 내보내기 (CSV/JSON)
 - Firefox 지원
+
+## Q
+의도와 달리
+1. CLIP (Real/Illustration) Error
+2. 이미지 분석 기능 미작동. 실제 flow를 보면서 문제점 파악 
+3. 이미지가 2개만 인식되는 문제
+
+### plan
+Background image 탐지(CSS background-image) 처리 방식을 선택해주세요
+
+❯ 1. 제거 (MVP)
+     <img>와 <canvas>만 탐지. 단순하고 안정적. 대부분의 사이트에서 충분함
+  2. 비동기 수정
+     이미지 로드 후 크기 확인. 더 많은 이미지 탐지 가능하나 복잡도 증가
+ 
+
+수정할 3개 파일:
+  1. src/offscreen/clip-analyzer.ts - CLIP 에러 수정 (base64 → HTMLImageElement)
+  2. src/content/image-detector.ts - background image 탐지 제거
+  3. src/offscreen/model-loader.ts - 에러 로깅 개선
+
+──────────────────────────────────────────────────────────────────────────────────
+ Ready to code?
+
+ Here is Claude's plan:
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ DiffReal 버그 수정 계획
+
+ 발견된 문제점 요약
+
+ | #   | 문제              | 원인                                 | 파일
+            |
+ |-----|-------------------|--------------------------------------|--------------
+ -----------|
+ | 1   | CLIP Error        | base64 string을 pipeline에 직접 전달 |
+ clip-analyzer.ts:25     |
+ | 2   | 이미지 2개만 인식 | background image 탐지 로직 버그      |
+ image-detector.ts:31-58 |
+ | 3   | Silent failure    | 모델 로드 에러가 무시됨              |
+ model-loader.ts:110-113 |
+
+ ---
+ 수정 계획
+
+ Step 1: CLIP 분석기 수정
+
+ 파일: src/offscreen/clip-analyzer.ts
+
+ 변경: analyzeRealism() 함수에서 base64 → HTMLImageElement 변환 추가
+
+ // 변경 전 (line 25)
+ const rawResults = await pipeline(imageData, allLabels);
+
+ // 변경 후
+ import { loadImageFromDataUrl } from './nsfw-analyzer';
+ const img = await loadImageFromDataUrl(imageData);
+ const rawResults = await pipeline(img, allLabels);
+
+ Step 2: nsfw-analyzer에서 함수 export
+
+ 파일: src/offscreen/nsfw-analyzer.ts
+
+ loadImageFromDataUrl 함수가 이미 export 되어 있음 (line 23) - 확인 완료
+
+ Step 3: Background image 탐지 제거
+
+ 파일: src/content/image-detector.ts
+
+ 변경: line 31-58 (background image 탐지 블록) 전체 제거
+ - <img> 태그와 <canvas>만 탐지
+ - 단순화하여 안정성 확보
+
+ Step 4: 에러 로깅 개선
+
+ 파일: src/offscreen/model-loader.ts
+
+ // 변경 전 (line 110-113)
+ await Promise.all([
+   loadClipModel().catch(() => null),
+   loadNsfwModel().catch(() => null),
+ ]);
+
+ // 변경 후
+ await Promise.all([
+   loadClipModel().catch((e) => {
+     console.error('[DiffReal] CLIP load failed:', e);
+     return null;
+   }),
+   loadNsfwModel().catch((e) => {
+     console.error('[DiffReal] NSFW load failed:', e);
+     return null;
+   }),
+ ]);
+
+ ---
+ 수정 파일 목록
+
+ | 파일                           | 수정 내용
+ |
+ |--------------------------------|----------------------------------------------
+ |
+ | src/offscreen/clip-analyzer.ts | base64 → HTMLImageElement 변환 추가
+ |
+ | src/content/image-detector.ts  | background image 탐지 코드 제거 (line 31-58)
+ |
+ | src/offscreen/model-loader.ts  | 에러 로깅 추가
+ |
+
+ ---
+ 빌드 및 테스트
+
+ npm run build
+
+ 1. Chrome에서 확장 프로그램 리로드
+ 2. 이미지가 많은 웹페이지 방문
+ 3. Panel 열고 "Scan Page" 클릭
+ 4. CLIP/NSFW 모델 상태가 "Ready"인지 확인
+ 5. 이미지 분석 및 Real/NSFW 점수 표시 확인
+
+## Q
+이미지 여럿 뜨는 것과 이동 기능은 작동하지만 분석은 여전히 안 됨
+console log
+[DiffReal] Content script loaded
+from origin 'https://...' has been blocked by CORS policy: No 
+'Access-Control-Allow-Origin' header is present on the requested 
+resource.Understand this error
+
+## A
+빌드 완료. CORS 문제 수정됨.
+
+변경 사항:
+
+| 파일                             | 변경 내용                                      |
+|----------------------------------|------------------------------------------------|
+| src/shared/types.ts              | FETCH_IMAGE 메시지 타입 및 payload 추가        |
+| src/background/message-router.ts | FETCH_IMAGE 핸들러 추가 (background에서 fetch) |
+| src/content/image-detector.ts    | background를 통해 이미지 fetch                 |
+
+원리:
+- Content script는 CORS 제한을 받음
+- Background script는 CORS 제한 없이 fetch 가능
+- 이미지 URL → Background fetch → base64 → Content로 반환
+
+테스트:
+1. Chrome에서 확장 프로그램 리로드
+2. 외부 이미지가 있는 사이트 방문
+3. Panel 열고 "Scan Page" 클릭
+4. 이미지 분석이 진행되는지 확인
