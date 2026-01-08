@@ -22,7 +22,7 @@ npm install -g diffreal-cli
 
 ### From local tgz file
 ```bash
-npm install -g ./diffreal-cli-1.0.0.tgz
+npm install -g ./dist/diffreal-cli-1.0.0.tgz
 ```
 
 ### From source

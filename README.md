@@ -21,7 +21,7 @@ npm install -g diffreal-cli
 
 ### tgz 파일로 설치 (어디서나 diffreal 명령 사용)
 ```bash
-npm install -g ./cli/diffreal-cli-1.0.0.tgz
+npm install -g ./dist/diffreal-cli-1.0.0.tgz
 ```
 
 ### 소스에서 설치
@@ -138,11 +138,13 @@ diffreal
 
 ```
 diffReal/
-├── cli/                    # CLI 도구
+├── cli/                    # CLI 소스
 │   ├── index.js            # 메인 CLI
 │   ├── classifier.js       # 이미지 분류기
 │   ├── package.json
 │   └── README.md
+├── dist/                   # 배포 파일
+│   └── diffreal-cli-x.x.x.tgz
 └── README.md
 ```
 
