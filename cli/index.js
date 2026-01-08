@@ -246,13 +246,21 @@ class DiffRealCLI {
     if (successful.length > 0) {
       const avgScore = successful.reduce((sum, r) => sum + r.score, 0) / successful.length;
       console.log(`평균 점수: ${avgScore.toFixed(3)}`);
-
-      // Show highest score image
-      const highest = successful.reduce((max, r) => r.score > max.score ? r : max, successful[0]);
       console.log('─'.repeat(60));
-      console.log(`🏆 최고 점수 이미지:`);
-      console.log(`   점수: \x1b[32m${highest.score.toFixed(3)}\x1b[0m`);
-      console.log(`   URL: ${highest.src}`);
+
+      if (realistic.length > 0) {
+        // Show all realistic images
+        console.log(`\x1b[32m📷 Realistic 이미지 (${realistic.length}개):\x1b[0m`);
+        realistic.sort((a, b) => b.score - a.score);
+        for (const img of realistic) {
+          console.log(`   [${img.index}] ${img.score.toFixed(3)} - ${img.src}`);
+        }
+      } else {
+        // No realistic images - show highest score (closest to real)
+        const highest = successful.reduce((max, r) => r.score > max.score ? r : max, successful[0]);
+        console.log(`\x1b[33m⚠️  Realistic 이미지 없음 - 최고 점수 이미지:\x1b[0m`);
+        console.log(`   [${highest.index}] ${highest.score.toFixed(3)} - ${highest.src}`);
+      }
     }
     console.log('═'.repeat(60) + '\n');
   }
