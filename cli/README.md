@@ -41,7 +41,12 @@ diffreal https://example.com
 
 # With custom image size threshold (minimum 100px)
 diffreal --size 100 https://example.com
-diffreal -s 300 https://pinterest.com/search/pins/?q=cat
+
+# With custom realistic threshold (0.7+ = REAL)
+diffreal -t 0.7 https://example.com
+
+# Combined options
+diffreal -s 300 -t 0.7 https://pinterest.com/search/pins/?q=cat
 
 # Show help
 diffreal --help
@@ -58,6 +63,7 @@ diffreal
 |---------|-------------|
 | `<URL>` | Analyze images on the page |
 | `size <N>` | Set minimum image size (e.g., `size 300`) |
+| `threshold <N>` | Set realistic threshold (e.g., `threshold 0.7`) |
 | `login` | Open browser for 30s to login (solves Cloudflare/login) |
 | `headless` | Toggle headless mode ON/OFF |
 | `quit` | Exit |
@@ -67,12 +73,13 @@ diffreal
 | Option | Description | Default |
 |--------|-------------|---------|
 | `-s, --size <N>` | Minimum image size in pixels | 300 |
+| `-t, --threshold <N>` | Realistic threshold (0-1) | 0.5 |
 | `-h, --help` | Show help | - |
 
 ## Score Interpretation
 
-- **Score > 0.5**: REAL (realistic photo) - shown in green
-- **Score <= 0.5**: AI (AI-generated image) - shown in orange
+- **Score > threshold**: REAL (realistic photo) - shown in green
+- **Score <= threshold**: AI (AI-generated image) - shown in orange
 
 ## Output Example
 

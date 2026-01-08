@@ -39,7 +39,12 @@ diffreal https://example.com
 
 # 이미지 크기 임계값 설정 (최소 300px 이상만 분석)
 diffreal --size 300 https://example.com
-diffreal -s 300 https://pinterest.com/search/pins/?q=cat
+
+# Realistic 임계값 설정 (0.7 이상만 REAL로 판정)
+diffreal -t 0.7 https://example.com
+
+# 옵션 조합
+diffreal -s 300 -t 0.7 https://pinterest.com/search/pins/?q=cat
 
 # 도움말
 diffreal --help
@@ -56,6 +61,7 @@ diffreal
 |--------|------|
 | `<URL>` | 해당 페이지 이미지 분석 |
 | `size <N>` | 최소 이미지 크기 설정 (예: `size 100`) |
+| `threshold <N>` | Realistic 임계값 설정 (예: `threshold 0.7`) |
 | `login` | 브라우저 열어서 로그인 (30초 대기) |
 | `headless` | 헤드리스 모드 ON/OFF 토글 |
 | `quit` | 종료 |
@@ -65,12 +71,13 @@ diffreal
 | 옵션 | 설명 | 기본값 |
 |------|------|--------|
 | `-s, --size <N>` | 최소 이미지 크기 (픽셀) | 300 |
+| `-t, --threshold <N>` | Realistic 판정 임계값 (0~1) | 0.5 |
 | `-h, --help` | 도움말 표시 | - |
 
 ## 점수 해석
 
-- **점수 > 0.5**: REAL (사실적 사진) - 녹색 표시
-- **점수 <= 0.5**: AI (AI 생성 이미지) - 주황색 표시
+- **점수 > threshold**: REAL (사실적 사진) - 녹색 표시
+- **점수 <= threshold**: AI (AI 생성 이미지) - 주황색 표시
 
 ## 출력 예시
 
