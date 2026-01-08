@@ -1,0 +1,44 @@
+{
+  "name": "diffreal-cli",
+  "version": "1.0.0",
+  "description": "Image Realism Classifier CLI - Analyze web page images as realistic or illustration",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "diffreal": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "classifier.js",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "image-classification",
+    "ai",
+    "deep-learning",
+    "puppeteer",
+    "realistic",
+    "illustration",
+    "deepfake",
+    "image-analysis",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.0.0",
+    "puppeteer": "^24.0.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
