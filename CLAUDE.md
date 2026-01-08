@@ -13,7 +13,7 @@ diffReal is a CLI tool that analyzes web page images to classify them as **reali
 # Run from source
 cd cli
 node index.js [url]
-node index.js --size 100 https://example.com
+node index.js --size 300 https://example.com
 
 # Interactive mode
 node index.js

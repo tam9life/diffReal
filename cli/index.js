@@ -21,6 +21,7 @@ const isWindows = process.platform === 'win32';
 // Configuration
 const CONFIG = {
   minImageSize: 300,  // Default minimum image size (width & height)
+  threshold: 0.5,     // Realistic threshold (score > threshold = realistic)
   userDataDir: path.join(os.homedir(), '.diffreal', 'browser-data'),
   headless: true,
 };
@@ -130,7 +131,7 @@ class DiffRealCLI {
           });
 
           const scoreBar = this.createScoreBar(result.score);
-          const label = result.score > 0.5 ? '\x1b[32mREAL\x1b[0m' : '\x1b[33mAI\x1b[0m';
+          const label = result.score > CONFIG.threshold ? '\x1b[32mREAL\x1b[0m' : '\x1b[33mAI\x1b[0m';
           console.log(`${scoreBar} ${result.score.toFixed(3)} ${label}`);
         } catch (error) {
           console.log(`❌ 실패: ${error.message}`);
@@ -227,14 +228,14 @@ class DiffRealCLI {
   createScoreBar(score, length = 20) {
     const filled = Math.round(score * length);
     const empty = length - filled;
-    const color = score > 0.5 ? '\x1b[32m' : '\x1b[33m';
+    const color = score > CONFIG.threshold ? '\x1b[32m' : '\x1b[33m';
     return `${color}[${'█'.repeat(filled)}${'░'.repeat(empty)}]\x1b[0m`;
   }
 
   printSummary(results) {
     const successful = results.filter(r => !r.error);
-    const realistic = successful.filter(r => r.score > 0.5);
-    const aiImage = successful.filter(r => r.score <= 0.5);
+    const realistic = successful.filter(r => r.score > CONFIG.threshold);
+    const aiImage = successful.filter(r => r.score <= CONFIG.threshold);
 
     console.log('\n' + '═'.repeat(60));
     console.log('📊 분석 결과 요약');
@@ -258,7 +259,7 @@ class DiffRealCLI {
       } else {
         // No realistic images - show highest score (closest to real)
         const highest = successful.reduce((max, r) => r.score > max.score ? r : max, successful[0]);
-        console.log(`\x1b[33m⚠️  Realistic 이미지 없음 - 최고 점수 이미지:\x1b[0m`);
+        console.log(`\x1b[33m⚠️  Real 이미지 없음 - 최고 점수 이미지:\x1b[0m`);
         console.log(`   [${highest.index}] ${highest.score.toFixed(3)} - ${highest.src}`);
       }
     }
@@ -281,15 +282,16 @@ class DiffRealCLI {
     });
 
     console.log('═'.repeat(60));
-    console.log('  diffReal - 이미지 Realistic/Illustration 분류기');
+    console.log('  diffReal - 이미지 Realistic/AI 분류기');
     console.log('═'.repeat(60));
     console.log('URL을 입력하면 해당 페이지의 이미지를 분석합니다.');
     console.log('로그인이 필요한 사이트는 먼저 headless off 후 로그인하세요.');
     console.log('\n명령어:');
-    console.log('  quit       - 종료');
-    console.log('  headless   - 헤드리스 모드 토글 (현재: ON)');
-    console.log('  login      - 브라우저 열어서 로그인 (30초 대기)');
-    console.log(`  size <N>   - 최소 이미지 크기 설정 (현재: ${CONFIG.minImageSize}px)`);
+    console.log('  quit         - 종료');
+    console.log('  headless     - 헤드리스 모드 토글 (현재: ON)');
+    console.log('  login        - 브라우저 열어서 로그인 (30초 대기)');
+    console.log(`  size <N>     - 최소 이미지 크기 설정 (현재: ${CONFIG.minImageSize}px)`);
+    console.log(`  threshold <N> - Realistic 임계값 설정 (현재: ${CONFIG.threshold})`);
     console.log('');
 
     const prompt = () => {
@@ -353,6 +355,19 @@ class DiffRealCLI {
           return;
         }
 
+        if (trimmed.startsWith('threshold ') || trimmed.startsWith('threshold=')) {
+          const thresholdStr = trimmed.replace(/^threshold[= ]/, '');
+          const threshold = parseFloat(thresholdStr);
+          if (isNaN(threshold) || threshold < 0 || threshold > 1) {
+            console.log('❌ 0과 1 사이의 값을 입력하세요 (예: threshold 0.7)\n');
+          } else {
+            CONFIG.threshold = threshold;
+            console.log(`✅ Realistic 임계값: ${threshold}\n`);
+          }
+          prompt();
+          return;
+        }
+
         let url = trimmed;
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
           url = 'https://' + url;
@@ -374,7 +389,7 @@ class DiffRealCLI {
 
 // Parse command line arguments
 function parseArgs(args) {
-  const result = { url: null, size: null, help: false };
+  const result = { url: null, size: null, threshold: null, help: false };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -382,6 +397,10 @@ function parseArgs(args) {
       result.size = parseInt(args[++i], 10);
     } else if (arg.startsWith('--size=')) {
       result.size = parseInt(arg.split('=')[1], 10);
+    } else if (arg === '-t' || arg === '--threshold') {
+      result.threshold = parseFloat(args[++i]);
+    } else if (arg.startsWith('--threshold=')) {
+      result.threshold = parseFloat(arg.split('=')[1]);
     } else if (arg === '-h' || arg === '--help') {
       result.help = true;
     } else if (!arg.startsWith('-')) {
@@ -393,19 +412,21 @@ function parseArgs(args) {
 
 function showHelp() {
   console.log(`
-diffreal - 이미지 Realistic/Illustration 분류기
+diffreal - 이미지 Realistic/AI 분류기
 
 사용법:
   diffreal [options] [url]
 
 옵션:
-  -s, --size <N>   최소 이미지 크기 (기본값: 300px)
-  -h, --help       도움말 표시
+  -s, --size <N>       최소 이미지 크기 (기본값: 300px)
+  -t, --threshold <N>  Realistic 판정 임계값 (기본값: 0.5)
+  -h, --help           도움말 표시
 
 예시:
   diffreal https://example.com
   diffreal --size 100 https://example.com
-  diffreal -s 300 https://pinterest.com/search/pins/?q=cat
+  diffreal -t 0.7 https://example.com
+  diffreal -s 300 -t 0.6 https://pinterest.com/search/pins/?q=cat
 
 인터랙티브 모드:
   diffreal
@@ -425,9 +446,13 @@ if (args.size && args.size >= 10) {
   CONFIG.minImageSize = args.size;
 }
 
+if (args.threshold !== null && args.threshold >= 0 && args.threshold <= 1) {
+  CONFIG.threshold = args.threshold;
+}
+
 if (args.url) {
   // Single URL mode
-  console.log(`\n⚙️  설정: 최소 이미지 크기 = ${CONFIG.minImageSize}px\n`);
+  console.log(`\n⚙️  설정: 최소 이미지 크기 = ${CONFIG.minImageSize}px, 임계값 = ${CONFIG.threshold}\n`);
   cli.initialize().then(async () => {
     try {
       let url = args.url;

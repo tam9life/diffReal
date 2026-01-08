@@ -1,6 +1,6 @@
 {
   "name": "diffreal-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Image Realism Classifier CLI - Analyze web page images as realistic or illustration",
   "main": "index.js",
   "type": "module",

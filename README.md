@@ -37,8 +37,8 @@ npm install -g .
 # 기본 사용
 diffreal https://example.com
 
-# 이미지 크기 임계값 설정 (최소 100px 이상만 분석)
-diffreal --size 100 https://example.com
+# 이미지 크기 임계값 설정 (최소 300px 이상만 분석)
+diffreal --size 300 https://example.com
 diffreal -s 300 https://pinterest.com/search/pins/?q=cat
 
 # 도움말
@@ -85,13 +85,12 @@ diffreal
 📊 분석 결과 요약
 ════════════════════════════════════════════════════════════
 총 이미지: 25개
-Realistic: 5개
-AI Image: 20개
+Realistic: 1개
+AI Image: 24개
 평균 점수: 0.392
 ────────────────────────────────────────────────────────────
-🏆 최고 점수 이미지:
-   점수: 0.892
-   URL: https://example.com/image.jpg
+🏆 Real 이미지 - 최고 점수 이미지:
+   [순서] 0.892 https://example.com/image.jpg
 ════════════════════════════════════════════════════════════
 ```
 
