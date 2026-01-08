@@ -1,1 +1,18 @@
 node_modules/
+
+# Claude Code local settings
+.claude/
+
+# Development plans
+plan/
+
+# Build artifacts (only dist/ should contain releases)
+cli/*.tgz
+
+# Environment files
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
