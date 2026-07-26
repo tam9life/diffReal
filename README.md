@@ -144,6 +144,8 @@ diffreal
 
 ```
 diffReal/
+├── .agents/skills/         # 저장소 전용 Codex skills
+│   └── check-img-cors/    # 브라우저 세션 기반 범용 URL 요청/CORS 점검
 ├── cli/                    # CLI 소스
 │   ├── index.js            # 메인 CLI
 │   ├── classifier.js       # 이미지 분류기
