@@ -1,0 +1,4 @@
+interface:
+  display_name: "Check Image CORS"
+  short_description: "브라우저 세션 기반 범용 URL 요청과 CORS 경로 점검"
+  default_prompt: "Use $check-img-cors to implement or diagnose a browser-session request for cross-origin text, image, audio, video, or other URL content."
